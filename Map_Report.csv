@@ -1,0 +1,20 @@
+
+
+BUFFER,FROM_INSTANCE.PORT,TO_INSTANCE.PORT,SIZE,MEMORY_GROUP,BANK,OFFSET,DMA_NEEDED
+sysmem0,-,-,1172,"(24, 0)",0,0,-
+sysmem1,-,-,1172,"(22, 0)",0,0,-
+
+
+PLIO,IN/OUT,TILE_COLUMN,CHANNEL
+PLIO_fib_cont0_taskIn,in,22,4
+PLIO_fib_cont0_argOut,out,22,0
+PLIO_fib_taskOut_argDataOut,out,24,4
+PLIO_fib_cont0_argDataOut,out,22,4
+PLIO_fib_closureIn,in,24,6
+PLIO_fib_argOut_SpawnNext,out,24,2
+PLIO_fib_taskIn,in,24,4
+
+
+CLUSTER,KERNELS,TILE
+PT0,"mygraph.fib_kernel,","(24, 0)"
+PT1,"mygraph.fib_cont0_kernel,","(22, 0)"
