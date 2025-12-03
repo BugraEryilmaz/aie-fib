@@ -50,6 +50,8 @@
   `endif // not def ENABLE_INITIAL_MEM_
 `endif // not def SYNTHESIS
 
+// external module chext_mem_1w1r
+
 module elasticDemux(	// src/main/scala/chext/elastic/Demux.scala:9:7
   input  [255:0] io_source_bits,	// src/main/scala/chext/elastic/Demux.scala:19:14
   input          io_source_valid,	// src/main/scala/chext/elastic/Demux.scala:19:14
@@ -75,59 +77,104 @@ module elasticDemux(	// src/main/scala/chext/elastic/Demux.scala:9:7
   assign io_select_ready = fire;	// src/main/scala/chext/elastic/Demux.scala:9:7, :30:28
 endmodule
 
-module StreamSplitter_Basic_256_256(	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
-  input          clock,	// <stdin>:39:11
-                 reset,	// <stdin>:40:11
-  output         input_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:39:17
-  input          input_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:39:17
-  input  [383:0] input_TDATA,	// src/main/scala/accel/bugra/StreamSplitter.scala:39:17
-  input          outputs_0_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:41:7
-  output         outputs_0_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:41:7
-  output [255:0] outputs_0_TDATA,	// src/main/scala/accel/bugra/StreamSplitter.scala:41:7
-  input          outputs_1_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:41:7
-  output         outputs_1_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:41:7
-  output [255:0] outputs_1_TDATA	// src/main/scala/accel/bugra/StreamSplitter.scala:41:7
+module StreamSplitter_Basic_256_256(	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
+  input          clock,	// <stdin>:80:11
+                 reset,	// <stdin>:81:11
+  output         input_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:54:17
+  input          input_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:54:17
+  input  [383:0] input_TDATA,	// src/main/scala/accel/bugra/StreamSplitter.scala:54:17
+  input          outputs_0_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:56:7
+  output         outputs_0_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:56:7
+  output [255:0] outputs_0_TDATA,	// src/main/scala/accel/bugra/StreamSplitter.scala:56:7
+  input          outputs_1_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:56:7
+  output         outputs_1_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:56:7
+  output [255:0] outputs_1_TDATA	// src/main/scala/accel/bugra/StreamSplitter.scala:56:7
 );
 
-  wire _fork0_demux0_io_source_ready;	// src/main/scala/accel/bugra/StreamSplitter.scala:49:25
-  wire _fork0_demux0_io_select_ready;	// src/main/scala/accel/bugra/StreamSplitter.scala:49:25
-  reg  fork0_regs_0;	// src/main/scala/accel/bugra/StreamSplitter.scala:46:21
-  reg  fork0_regs_1;	// src/main/scala/accel/bugra/StreamSplitter.scala:46:21
-  wire fork0_ready_qual1_0 = _fork0_demux0_io_source_ready | fork0_regs_0;	// src/main/scala/accel/bugra/StreamSplitter.scala:46:21, :49:25
-  wire fork0_ready_qual1_1 = _fork0_demux0_io_select_ready | fork0_regs_1;	// src/main/scala/accel/bugra/StreamSplitter.scala:46:21, :49:25
-  wire fork0_ready = fork0_ready_qual1_0 & fork0_ready_qual1_1;	// src/main/scala/accel/bugra/StreamSplitter.scala:46:21
-  always @(posedge clock) begin	// <stdin>:39:11
-    if (reset) begin	// <stdin>:39:11
-      fork0_regs_0 <= 1'h0;	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7, :46:21
-      fork0_regs_1 <= 1'h0;	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7, :46:21
+  wire         _fork0_demux0_io_source_ready;	// src/main/scala/accel/bugra/StreamSplitter.scala:64:25
+  wire         _fork0_demux0_io_select_ready;	// src/main/scala/accel/bugra/StreamSplitter.scala:64:25
+  wire [383:0] fork0_leftBuffer0_source_bits = input_TDATA;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+  wire         fork0_leftBuffer0_source_valid = input_TVALID;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+  reg          fork0_leftBuffer0_wrap;	// src/main/scala/chisel3/util/Counter.scala:61:40
+  reg          fork0_leftBuffer0_wrap_1;	// src/main/scala/chisel3/util/Counter.scala:61:40
+  reg          fork0_leftBuffer0_maybe_full;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+  wire         fork0_leftBuffer0_ptr_match =
+    fork0_leftBuffer0_wrap == fork0_leftBuffer0_wrap_1;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21, src/main/scala/chisel3/util/Counter.scala:61:40
+  wire         fork0_leftBuffer0_source_ready;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+  wire         fork0_leftBuffer0_do_enq =
+    fork0_leftBuffer0_source_ready & fork0_leftBuffer0_source_valid;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+  wire         fork0_leftBuffer0_sink_valid =
+    ~(fork0_leftBuffer0_ptr_match & ~fork0_leftBuffer0_maybe_full);	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+  assign fork0_leftBuffer0_source_ready =
+    ~(fork0_leftBuffer0_ptr_match & fork0_leftBuffer0_maybe_full);	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+  wire [383:0] fork0_leftBuffer0_sink_bits;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+  reg          fork0_regs_0;	// src/main/scala/accel/bugra/StreamSplitter.scala:61:21
+  reg          fork0_regs_1;	// src/main/scala/accel/bugra/StreamSplitter.scala:61:21
+  wire         fork0_ready_qual1_0 = _fork0_demux0_io_source_ready | fork0_regs_0;	// src/main/scala/accel/bugra/StreamSplitter.scala:61:21, :64:25
+  wire         fork0_ready_qual1_1 = _fork0_demux0_io_select_ready | fork0_regs_1;	// src/main/scala/accel/bugra/StreamSplitter.scala:61:21, :64:25
+  wire         fork0_leftBuffer0_sink_ready = fork0_ready_qual1_0 & fork0_ready_qual1_1;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21, :61:21
+  always @(posedge clock) begin	// <stdin>:80:11
+    if (reset) begin	// <stdin>:80:11
+      fork0_leftBuffer0_wrap <= 1'h0;	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7, src/main/scala/chisel3/util/Counter.scala:61:40
+      fork0_leftBuffer0_wrap_1 <= 1'h0;	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7, src/main/scala/chisel3/util/Counter.scala:61:40
+      fork0_leftBuffer0_maybe_full <= 1'h0;	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7, :44:21
+      fork0_regs_0 <= 1'h0;	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7, :61:21
+      fork0_regs_1 <= 1'h0;	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7, :61:21
     end
-    else begin	// <stdin>:39:11
-      fork0_regs_0 <= fork0_ready_qual1_0 & input_TVALID & ~fork0_ready;	// src/main/scala/accel/bugra/StreamSplitter.scala:46:21
-      fork0_regs_1 <= fork0_ready_qual1_1 & input_TVALID & ~fork0_ready;	// src/main/scala/accel/bugra/StreamSplitter.scala:46:21
+    else begin	// <stdin>:80:11
+      automatic logic fork0_leftBuffer0_do_deq =
+        fork0_leftBuffer0_sink_ready & fork0_leftBuffer0_sink_valid;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+      if (fork0_leftBuffer0_do_enq)	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+        fork0_leftBuffer0_wrap <= fork0_leftBuffer0_wrap - 1'h1;	// src/main/scala/chisel3/util/Counter.scala:61:40, :77:24
+      if (fork0_leftBuffer0_do_deq)	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+        fork0_leftBuffer0_wrap_1 <= fork0_leftBuffer0_wrap_1 - 1'h1;	// src/main/scala/chisel3/util/Counter.scala:61:40, :77:24
+      if (~(fork0_leftBuffer0_do_enq == fork0_leftBuffer0_do_deq))	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+        fork0_leftBuffer0_maybe_full <= fork0_leftBuffer0_do_enq;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+      fork0_regs_0 <=
+        fork0_ready_qual1_0 & fork0_leftBuffer0_sink_valid
+        & ~fork0_leftBuffer0_sink_ready;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21, :61:21
+      fork0_regs_1 <=
+        fork0_ready_qual1_1 & fork0_leftBuffer0_sink_valid
+        & ~fork0_leftBuffer0_sink_ready;	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21, :61:21
     end
   end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
-    `ifdef FIRRTL_BEFORE_INITIAL	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
-      `FIRRTL_BEFORE_INITIAL	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
+  `ifdef ENABLE_INITIAL_REG_	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
+    `ifdef FIRRTL_BEFORE_INITIAL	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
+      `FIRRTL_BEFORE_INITIAL	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
     `endif // FIRRTL_BEFORE_INITIAL
-    initial begin	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
-      automatic logic [31:0] _RANDOM[0:0];	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
-      `ifdef INIT_RANDOM_PROLOG_	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
-        `INIT_RANDOM_PROLOG_	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
+    initial begin	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
+      automatic logic [31:0] _RANDOM[0:0];	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
+      `ifdef INIT_RANDOM_PROLOG_	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
+        `INIT_RANDOM_PROLOG_	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
       `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
-        _RANDOM[/*Zero width*/ 1'b0] = `RANDOM;	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
-        fork0_regs_0 = _RANDOM[/*Zero width*/ 1'b0][0];	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7, :46:21
-        fork0_regs_1 = _RANDOM[/*Zero width*/ 1'b0][1];	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7, :46:21
+      `ifdef RANDOMIZE_REG_INIT	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
+        _RANDOM[/*Zero width*/ 1'b0] = `RANDOM;	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
+        fork0_leftBuffer0_wrap = _RANDOM[/*Zero width*/ 1'b0][0];	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7, src/main/scala/chisel3/util/Counter.scala:61:40
+        fork0_leftBuffer0_wrap_1 = _RANDOM[/*Zero width*/ 1'b0][1];	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7, src/main/scala/chisel3/util/Counter.scala:61:40
+        fork0_leftBuffer0_maybe_full = _RANDOM[/*Zero width*/ 1'b0][2];	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7, :44:21, src/main/scala/chisel3/util/Counter.scala:61:40
+        fork0_regs_0 = _RANDOM[/*Zero width*/ 1'b0][3];	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7, :61:21, src/main/scala/chisel3/util/Counter.scala:61:40
+        fork0_regs_1 = _RANDOM[/*Zero width*/ 1'b0][4];	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7, :61:21, src/main/scala/chisel3/util/Counter.scala:61:40
       `endif // RANDOMIZE_REG_INIT
     end // initial
-    `ifdef FIRRTL_AFTER_INITIAL	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
-      `FIRRTL_AFTER_INITIAL	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7
+    `ifdef FIRRTL_AFTER_INITIAL	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
+      `FIRRTL_AFTER_INITIAL	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  elasticDemux fork0_demux0 (	// src/main/scala/accel/bugra/StreamSplitter.scala:49:25
-    .io_source_bits   (input_TDATA[255:0]),	// src/main/scala/accel/bugra/StreamSplitter.scala:50:24
-    .io_source_valid  (input_TVALID & ~fork0_regs_0),	// src/main/scala/accel/bugra/StreamSplitter.scala:46:21
+  chext_mem_1w1r #(
+    .ADDR_WIDTH(1),
+    .COUNT(2),
+    .DATA_WIDTH(384)
+  ) fork0_leftBuffer0_ram (	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+    .clock    (clock),
+    .addrA    (fork0_leftBuffer0_wrap),	// src/main/scala/chisel3/util/Counter.scala:61:40
+    .writeEnA (fork0_leftBuffer0_do_enq),	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+    .dataInA  (fork0_leftBuffer0_source_bits),	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21
+    .addrB    (fork0_leftBuffer0_wrap_1),	// src/main/scala/chisel3/util/Counter.scala:61:40
+    .dataOutB (fork0_leftBuffer0_sink_bits)
+  );
+  elasticDemux fork0_demux0 (	// src/main/scala/accel/bugra/StreamSplitter.scala:64:25
+    .io_source_bits   (fork0_leftBuffer0_sink_bits[255:0]),	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21, :65:24
+    .io_source_valid  (fork0_leftBuffer0_sink_valid & ~fork0_regs_0),	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21, :61:21
     .io_source_ready  (_fork0_demux0_io_source_ready),
     .io_sinks_0_bits  (outputs_0_TDATA),
     .io_sinks_0_valid (outputs_0_TVALID),
@@ -135,28 +182,29 @@ module StreamSplitter_Basic_256_256(	// src/main/scala/accel/bugra/StreamSplitte
     .io_sinks_1_bits  (outputs_1_TDATA),
     .io_sinks_1_valid (outputs_1_TVALID),
     .io_sinks_1_ready (outputs_1_TREADY),
-    .io_select_bits   (input_TDATA[352]),	// src/main/scala/accel/bugra/StreamSplitter.scala:49:25
-    .io_select_valid  (input_TVALID & ~fork0_regs_1),	// src/main/scala/accel/bugra/StreamSplitter.scala:46:21
+    .io_select_bits   (fork0_leftBuffer0_sink_bits[352]),	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21, :64:25
+    .io_select_valid  (fork0_leftBuffer0_sink_valid & ~fork0_regs_1),	// src/main/scala/accel/bugra/StreamSplitter.scala:44:21, :61:21
     .io_select_ready  (_fork0_demux0_io_select_ready)
   );
-  assign input_TREADY = fork0_ready;	// src/main/scala/accel/bugra/StreamSplitter.scala:34:7, :46:21
+  assign input_TREADY = fork0_leftBuffer0_source_ready;	// src/main/scala/accel/bugra/StreamSplitter.scala:36:7, :44:21
 endmodule
 
-module StreamSplitter_256_256(	// src/main/scala/accel/bugra/StreamSplitter.scala:67:7
-  input          clock,	// <stdin>:112:11
-                 reset,	// <stdin>:113:11
-  output         input_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:76:17
-  input          input_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:76:17
-  input  [383:0] input_TDATA,	// src/main/scala/accel/bugra/StreamSplitter.scala:76:17
-  input          outputs_0_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:78:7
-  output         outputs_0_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:78:7
-  output [255:0] outputs_0_TDATA,	// src/main/scala/accel/bugra/StreamSplitter.scala:78:7
-  input          outputs_1_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:78:7
-  output         outputs_1_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:78:7
-  output [255:0] outputs_1_TDATA	// src/main/scala/accel/bugra/StreamSplitter.scala:78:7
+module StreamSplitter_256_256(	// src/main/scala/accel/bugra/StreamSplitter.scala:82:7
+  input          clock,	// <stdin>:205:11
+                 reset_n,	// <stdin>:206:11
+  output         input_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:91:17
+  input          input_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:91:17
+  input  [383:0] input_TDATA,	// src/main/scala/accel/bugra/StreamSplitter.scala:91:17
+  input          outputs_0_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:93:7
+  output         outputs_0_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:93:7
+  output [255:0] outputs_0_TDATA,	// src/main/scala/accel/bugra/StreamSplitter.scala:93:7
+  input          outputs_1_TREADY,	// src/main/scala/accel/bugra/StreamSplitter.scala:93:7
+  output         outputs_1_TVALID,	// src/main/scala/accel/bugra/StreamSplitter.scala:93:7
+  output [255:0] outputs_1_TDATA	// src/main/scala/accel/bugra/StreamSplitter.scala:93:7
 );
 
-  StreamSplitter_Basic_256_256 dut (	// src/main/scala/accel/bugra/StreamSplitter.scala:74:19
+  wire reset = ~reset_n;	// <stdin>:208:20
+  StreamSplitter_Basic_256_256 dut (	// src/main/scala/accel/bugra/StreamSplitter.scala:89:19
     .clock            (clock),
     .reset            (reset),
     .input_TREADY     (input_TREADY),

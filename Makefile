@@ -21,8 +21,16 @@ EXECUTABLE   := host_overlay.exe
 RTL_DIRS := $(wildcard ./src/rtl/*)
 # Exclude UpSize_128_512 - not used in connectivity.cfg
 RTL_DIRS_FILTERED := $(filter-out ./src/rtl/UpSize_128_512,$(RTL_DIRS))
+# Kernel renaming folders i.e. ./src/rtl/fibonacci -> ./output_rtl/fibonacci
+RTL_KERNELS := $(patsubst ./src/rtl/%,./output_rtl/%,$(RTL_DIRS_FILTERED))
 # Generate XO targets for all kernels
 RTL_XOS := $(patsubst %,xos/%-$(TARGET)-$(PLATFORM_NAME).xo,$(notdir $(RTL_DIRS_FILTERED)))
+
+test:
+	@$(ECHO) "RTL_DIRS: $(RTL_DIRS)"
+	@$(ECHO) "RTL_DIRS_FILTERED: $(RTL_DIRS_FILTERED)"
+	@$(ECHO) "RTL_KERNELS: $(RTL_KERNELS)"
+	@$(ECHO) "RTL_XOS: $(RTL_XOS)"
 
 ###########################################################
 # build aie graph
@@ -39,7 +47,7 @@ $(AIE_OBJ): ./src/aie/*
 ###########################################################
 .PHONY: clean
 clean:
-	@rm -rf Work libadf.a xos *.xsa *.xclbin *.o *.so *.exe _x packaged xclbins
+	@rm -rf Work libadf.a xos *.xsa *.xclbin *.o *.so *.exe _x packaged xclbins .Xil *.log host sim *.jou Map_Report.csv sol.db
 
 
 ##########################################################################
@@ -57,7 +65,7 @@ all_xos: $(RTL_XOS)
 # Pattern rule for generating XO files from RTL directories
 # Extracts kernel name from the target filename
 VIVADO := $(XILINX_VIVADO)/bin/vivado
-xos/%-$(TARGET)-$(PLATFORM_NAME).xo: ./src/rtl/%
+xos/%-$(TARGET)-$(PLATFORM_NAME).xo: ./output_rtl/%
 	@mkdir -p xos
 	@$(ECHO) "Generating XO file: $@ from $<"
 	@$(VIVADO) -mode batch -source scripts/gen_xo.tcl -tclargs $@ $* $(TARGET) $(PLATFORM_NAME)
@@ -108,10 +116,10 @@ all:  $(FINAL_XCLBIN) host
 
 .PHONY: run
 run: all
-	enable_xilinx_2022.2
+# 	enable_xilinx_2022.2
 	if [ "$(TARGET)" = "hw_emu" ]; then \
 	  export XCL_EMULATION_MODE=hw_emu; \
 	else \
 	  unset XCL_EMULATION_MODE; \
 	fi; \
-	./host $(FINAL_XCLBIN) 27
+	./host $(FINAL_XCLBIN) 5

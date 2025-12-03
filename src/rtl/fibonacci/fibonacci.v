@@ -17018,7 +17018,7 @@ module Queue2_WriteResponseChannel_12 (
 endmodule
 module fibonacci (
 	clock,
-	reset,
+	reset_n,
 	paused,
 	done,
 	s_axil_mgmt_hardcilk_ARREADY,
@@ -17420,7 +17420,8 @@ module fibonacci (
 	m_axi_08_BRESP
 );
 	input clock;
-	input reset;
+	input reset_n;
+	wire reset = ~reset_n;
 	output wire paused;
 	output wire done;
 	output wire s_axil_mgmt_hardcilk_ARREADY;

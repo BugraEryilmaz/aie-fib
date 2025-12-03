@@ -1,4 +1,3 @@
-
 #/*
 # Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: X11
@@ -9,7 +8,15 @@ set path_to_packaged "./packaged/${suffix}"
 set path_to_tmp_project "./packaged/tmp_${suffix}"
 
 create_project -force kernel_pack $path_to_tmp_project 
-add_files -norecurse [glob $path_to_hdl/*.v $path_to_hdl/*.sv]
+
+# Explicitly list all files
+add_files -norecurse ${path_to_hdl}/DualPortBRAM.v
+add_files -norecurse ${path_to_hdl}/fibonacci.v
+
+# Set unique library names
+set_property library u0002 [get_files ${path_to_hdl}/DualPortBRAM.v]
+set_property library u0003 [get_files ${path_to_hdl}/fibonacci.v]
+
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
 ipx::package_project -root_dir $path_to_packaged -vendor epfl.ch -library hardcilk -taxonomy /KernelIP -import_files -set_current false
@@ -23,6 +30,17 @@ foreach up [ipx::get_user_parameters] {
 set_property sdx_kernel true [ipx::current_core]
 set_property sdx_kernel_type rtl [ipx::current_core]
 ipx::create_xgui_files [ipx::current_core]
+
+ipx::associate_bus_interfaces -busif m_axi_00 -clock clock [ipx::current_core]
+ipx::associate_bus_interfaces -busif m_axi_01 -clock clock [ipx::current_core]
+ipx::associate_bus_interfaces -busif m_axi_02 -clock clock [ipx::current_core]
+ipx::associate_bus_interfaces -busif m_axi_03 -clock clock [ipx::current_core]
+ipx::associate_bus_interfaces -busif m_axi_04 -clock clock [ipx::current_core]
+ipx::associate_bus_interfaces -busif m_axi_05 -clock clock [ipx::current_core] 
+ipx::associate_bus_interfaces -busif m_axi_06 -clock clock [ipx::current_core]
+ipx::associate_bus_interfaces -busif m_axi_07 -clock clock [ipx::current_core]
+ipx::associate_bus_interfaces -busif m_axi_08 -clock clock [ipx::current_core] 
+ipx::associate_bus_interfaces -busif s_axil_mgmt_hardcilk -clock clock [ipx::current_core]
 
 # Associate all AXI-Stream interfaces with the clock
 foreach bus_if [ipx::get_bus_interfaces -of_objects [ipx::current_core]] {

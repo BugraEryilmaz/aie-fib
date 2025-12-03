@@ -42,32 +42,32 @@ struct closure_in {
 };
 
 void read_hs(input_stream_uint32 * in, arg_out& ret) {
-    uint32_t data_hi = readincr(in);
     uint32_t data_lo = readincr(in);
+    uint32_t data_hi = readincr(in);
     ret.data = ((uint64)data_hi << 32) | (uint64)data_lo;
 }
 
 void write_hs(output_stream_uint32 * out, arg_out& value) {
-    writeincr(out, (uint32_t)(value.data >> 32));
     writeincr(out, (uint32_t)(value.data & 0xFFFFFFFF));
+    writeincr(out, (uint32_t)(value.data >> 32));
 }
 
 void read_hs(input_stream_uint32 * in, closure_in& ret) {
-    uint32_t data_hi = readincr(in);
     uint32_t data_lo = readincr(in);
+    uint32_t data_hi = readincr(in);
     ret.data = ((uint64)data_hi << 32) | (uint64)data_lo;
 }
 
 void write_hs(output_stream_uint32 * out, closure_in& value) {
-    writeincr(out, (uint32_t)(value.data >> 32));
     writeincr(out, (uint32_t)(value.data & 0xFFFFFFFF));
+    writeincr(out, (uint32_t)(value.data >> 32));
 }
 
 void read_hs(input_stream_uint32 * in, fib_cont0_task& ret) {
     ret._counter = readincr(in);
     ret.f1 = readincr(in);
-    uint32_t cont_hi = readincr(in);
     uint32_t cont_lo = readincr(in);
+    uint32_t cont_hi = readincr(in);
     ret._cont = ((uint64_t)cont_hi << 32) | (uint64_t)cont_lo;
     ret.f2 = readincr(in);
     // padding
@@ -79,8 +79,8 @@ void read_hs(input_stream_uint32 * in, fib_cont0_task& ret) {
 void write_hs(output_stream_uint32 * out, fib_cont0_task& value) {
     writeincr(out, value._counter);
     writeincr(out, value.f1);
-    writeincr(out, (uint32_t)(value._cont >> 32));
     writeincr(out, (uint32_t)(value._cont & 0xFFFFFFFF));
+    writeincr(out, (uint32_t)(value._cont >> 32));
     writeincr(out, value.f2);
     // padding
     for (int i = 0; i < 3; i++) {
@@ -89,8 +89,8 @@ void write_hs(output_stream_uint32 * out, fib_cont0_task& value) {
 }
 
 void read_hs(input_stream_uint32 * in, fib_cont0_spawn_next& ret) {
-    uint32_t addr_hi = readincr(in);
     uint32_t addr_lo = readincr(in);
+    uint32_t addr_hi = readincr(in);
     ret.addr = ((uint64_t)addr_hi << 32) | (uint64_t)addr_lo;
     read_hs(in, ret.data);
     ret.size = readincr(in);
@@ -102,8 +102,8 @@ void read_hs(input_stream_uint32 * in, fib_cont0_spawn_next& ret) {
 }
 
 void write_hs(output_stream_uint32 * out, fib_cont0_spawn_next& value) {
-    writeincr(out, (uint32_t)(value.addr >> 32));
     writeincr(out, (uint32_t)(value.addr & 0xFFFFFFFF));
+    writeincr(out, (uint32_t)(value.addr >> 32));
     write_hs(out, value.data);
     writeincr(out, value.size);
     writeincr(out, value.allow);
@@ -114,8 +114,8 @@ void write_hs(output_stream_uint32 * out, fib_cont0_spawn_next& value) {
 }
 
 void read_hs(input_stream_uint32 * in, uint32_t_arg_out& ret) {
-    uint32_t addr_hi = readincr(in);
     uint32_t addr_lo = readincr(in);
+    uint32_t addr_hi = readincr(in);
     ret.addr = ((uint64_t)addr_hi << 32) | (uint64_t)addr_lo;
     ret.data = readincr(in);
     ret.size = readincr(in);
@@ -127,8 +127,8 @@ void read_hs(input_stream_uint32 * in, uint32_t_arg_out& ret) {
 }
 
 void write_hs(output_stream_uint32 * out, uint32_t_arg_out& value) {
-    writeincr(out, (uint32_t)(value.addr >> 32));
     writeincr(out, (uint32_t)(value.addr & 0xFFFFFFFF));
+    writeincr(out, (uint32_t)(value.addr >> 32));
     writeincr(out, value.data);
     writeincr(out, value.size);
     writeincr(out, value.allow);
@@ -139,8 +139,8 @@ void write_hs(output_stream_uint32 * out, uint32_t_arg_out& value) {
 }
 
 void read_hs(input_stream_uint32 * in, fib_task& ret) {
-    uint32_t cont_hi = readincr(in);
     uint32_t cont_lo = readincr(in);
+    uint32_t cont_hi = readincr(in);
     ret._cont = ((uint64_t)cont_hi << 32) | (uint64_t)cont_lo;
     ret.n = readincr(in);
     // padding
@@ -150,8 +150,8 @@ void read_hs(input_stream_uint32 * in, fib_task& ret) {
 }
 
 void write_hs(output_stream_uint32 * out, fib_task& value) {
-    writeincr(out, (uint32_t)(value._cont >> 32));
     writeincr(out, (uint32_t)(value._cont & 0xFFFFFFFF));
+    writeincr(out, (uint32_t)(value._cont >> 32));
     writeincr(out, value.n);
     // padding
     for (int i = 0; i < 5; i++) {
@@ -161,20 +161,16 @@ void write_hs(output_stream_uint32 * out, fib_task& value) {
 
 template<typename T1, typename T2>
 struct stream_union_2 {
-    uint32 tag;
-    uint32 _padding[3];
     union {
         T1 t1;
         T2 t2;
     };
+    uint32 _padding[3];
+    uint32 tag;
 };
 
 template<typename T1, typename T2>
 void read_hs(input_stream_uint32 * in, stream_union_2<T1, T2>& ret) {
-    ret.tag = readincr(in);
-    for (int i = 0; i < 3; i++) {
-        ret._padding[i] = readincr(in);
-    }
     uint32 readBytes = 16;
     if (ret.tag == 0) {
         read_hs(in, ret.t1);
@@ -187,14 +183,14 @@ void read_hs(input_stream_uint32 * in, stream_union_2<T1, T2>& ret) {
         readincr(in);
         readBytes += 4;
     }
+    for (int i = 0; i < 3; i++) {
+        ret._padding[i] = readincr(in);
+    }
+    ret.tag = readincr(in);
 }
 
 template<typename T1, typename T2>
 void write_hs(output_stream_uint32 * out, stream_union_2<T1, T2>& value) {
-    writeincr(out, value.tag);
-    for (int i = 0; i < 3; i++) {
-        writeincr(out, value._padding[i]);
-    }
     uint32 writtenBytes = 16;
     if (value.tag == 0) {
         write_hs(out, value.t1);
@@ -204,60 +200,12 @@ void write_hs(output_stream_uint32 * out, stream_union_2<T1, T2>& value) {
         writtenBytes += sizeof(T2);
     }
     while (sizeof(value) > writtenBytes) {
-        writeincr(out, 0);
+        writeincr(out, writtenBytes);
         writtenBytes += 4;
     }
+    for (int i = 0; i < 3; i++) {
+        writeincr(out, i+1);
+    }
+    writeincr(out, value.tag);
 }
-// struct fib_input {
-    //     uint64 cont;
-    //     uint64 n;
-    // };
-
-// struct sum_input {
-//     uint64 cont;
-//     uint64 x;
-//     uint64 y;
-// };
-
-// struct sum_args {
-//     uint64 cont;
-//     uint64 join_counter;
-// };
-
-// struct sum_arg_out {
-//     uint64 addr;
-//     uint64 data;
-//     uint64 size; // What is this?
-//     uint64 allow; // What is this?
-// };
-
-// template<typename T>
-// struct spawn_next {
-//     uint64 addr;
-//     T data;
-//     uint64 size;
-//     uint64 allow; // What is this?
-// };
-
-
-// template<typename T>
-// T read_arbitrary_64(input_stream_uint32 * in) {
-//     T value;
-//     uint32* ptr = (uint32*)&value;
-//     for (size_t i = 0; i < sizeof(T)/8; i++) {
-//         ptr[2*i+1] = readincr(in);
-//         ptr[2*i] = readincr(in);
-//     }
-//     return value;
-// }
-
-// template<typename T>
-// void write_arbitrary_64(output_stream_uint32 * out, T& value) {
-//     uint32* ptr = (uint32*)&value;
-//     for (size_t i = 0; i < sizeof(T)/8; i++) {
-//         writeincr(out, ptr[2*i+1]);
-//         writeincr(out, ptr[2*i]);
-//     }
-// }
-
 #endif

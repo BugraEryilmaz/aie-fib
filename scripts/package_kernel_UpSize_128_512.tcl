@@ -1,4 +1,3 @@
-
 #/*
 # Copyright (C) 2023, Advanced Micro Devices, Inc. All rights reserved.
 # SPDX-License-Identifier: X11
@@ -9,7 +8,15 @@ set path_to_packaged "./packaged/${suffix}"
 set path_to_tmp_project "./packaged/tmp_${suffix}"
 
 create_project -force kernel_pack $path_to_tmp_project 
-add_files -norecurse [glob $path_to_hdl/*.v $path_to_hdl/*.sv]
+
+# Explicitly list all files
+add_files -norecurse ${path_to_hdl}/UpSize_128_512.sv
+add_files -norecurse ${path_to_hdl}/chext_mem_1w1r.sv
+
+# Set unique library name
+set_property library u0007 [get_files ${path_to_hdl}/UpSize_128_512.sv]
+set_property library u0007 [get_files ${path_to_hdl}/chext_mem_1w1r.sv]
+
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
 ipx::package_project -root_dir $path_to_packaged -vendor epfl.ch -library hardcilk -taxonomy /KernelIP -import_files -set_current false

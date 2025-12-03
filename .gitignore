@@ -23,3 +23,7 @@ libadf.a
 Map_Report/
 sol.db
 cfg/
+output_rtl/
+
+!src/host/
+!src/host/**

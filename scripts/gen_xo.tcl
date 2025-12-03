@@ -16,11 +16,11 @@ set device    [lindex $::argv 3]
 
 set suffix "${krnl_name}_${target}_${device}"
 
-if { $krnl_name == "fibonacci" } {
-    source -notrace ./scripts/package_kernel.tcl
-} else {
-    source -notrace ./scripts/package_kernel_noaxi.tcl
-}
+source -notrace ./scripts/package_kernel_${krnl_name}.tcl
+# if { $krnl_name == "fibonacci" } {
+# } else {
+#     source -notrace ./scripts/package_kernel_noaxi.tcl
+# }
 
 if {[file exists "${xoname}"]} {
     file delete -force "${xoname}"
