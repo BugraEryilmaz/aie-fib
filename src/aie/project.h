@@ -40,7 +40,7 @@ public:
     source(fib_kernel) = "kernels/fib.cc";
     source(fib_cont0_kernel) = "kernels/fib_cont0.cc";
 
-    runtime<ratio>(fib_kernel) = 0.1;
-    runtime<ratio>(fib_cont0_kernel) = 0.1;
+    runtime<ratio>(fib_kernel) = 1;
+    runtime<ratio>(fib_cont0_kernel) = 1;
   }
 };

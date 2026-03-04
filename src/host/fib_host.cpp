@@ -19,7 +19,7 @@
 #include <experimental/xrt_xclbin.h>
 #include <experimental/xrt_ip.h>
 
-#define buf_size 4096 
+#define buf_size 4096 * 1024 * 8
 
 // Define the struct for the fib arguments
 struct fib_task {
@@ -54,7 +54,7 @@ void inline writeRegister64(xrt::ip & ip, uint64_t offset, uint64_t value) {
 
 
 template <typename T>
-void inline initializeScheduler( std::vector<T> base_task_data, 
+void inline initializeScheduler( std::vector<T> base_task_data,
                           uint64_t bufferSize,
                           uint64_t rAddr_shift,
                           uint64_t maxLength_shift,
@@ -73,10 +73,10 @@ void inline initializeScheduler( std::vector<T> base_task_data,
     size_t vector_size_bytes = bufferSize * sizeof(T);
     auto scheduler_virtual_queue = *preallocated_bo;
     auto scheduler_virtual_queue_map = *preallocated_map;
-    
+
     // fill with zeros but use explicit pointer conversion to avoid issues with std::fill and non-trivial types
     std::fill(reinterpret_cast<uint8_t*>(scheduler_virtual_queue_map), reinterpret_cast<uint8_t*>(scheduler_virtual_queue_map) + vector_size_bytes, 0);
-    
+
     // if base_task_data is not empty, copy the base_task_data to the head of the scheduler_virtual_queue_map
     if(!base_task_data.empty()){
         std::copy(base_task_data.begin(), base_task_data.end(), scheduler_virtual_queue_map);
@@ -170,7 +170,7 @@ void inline initializeAllocator(uint64_t bufferSize,
                           xrt::bo* preallocated_address_bo = nullptr,
                           uint64_t** preallocated_address_map = nullptr
                         ){
-    
+
     // Create a host bufferSize as a bo object for continuation virtual queue
     size_t vector_size_bytes = bufferSize * sizeof(T);
     auto allocator_virtual_queue = *preallocated_bo;
@@ -196,10 +196,10 @@ void inline initializeAllocator(uint64_t bufferSize,
     // Create a host bufferSize as a bo object for continuation addresses
     size_t address_vector_size_bytes = bufferSize * sizeof(uint64_t);
     auto allocator_address_queue = *preallocated_address_bo;
-    
+
     auto allocator_address_queue_map = *preallocated_address_map;
     std::copy(addresses.begin(), addresses.end(), allocator_address_queue_map);
-    
+
     // Synchronize buffer content with device side
     allocator_address_queue.sync(XCL_BO_SYNC_BO_TO_DEVICE);
 
@@ -235,7 +235,7 @@ int main(int argc, char** argv) {
     }
     std::string binaryFile = argv[1];
     uint32_t fib_value = std::stoi(argv[2]);
-    
+
     auto xclbin = xrt::xclbin(binaryFile);
     int device_index = 0;
 
@@ -243,14 +243,14 @@ int main(int argc, char** argv) {
     auto device = xrt::device(device_index);
     std::cout << "Load the xclbin " << binaryFile << std::endl;
     auto uuid = device.load_xclbin(binaryFile);
- 
+
 
     auto ip1 = xrt::ip(device, uuid, "fibonacci:{fibonacci_1}");
 
 
     std::cout << "Log the rPause registers before starting the servers" << std::endl;
 
-   
+
     // Log the rPause registers before starting the servers
     logAllRpause(ip1);
 
@@ -261,13 +261,13 @@ int main(int argc, char** argv) {
     //     std::cout << "Address: " << std::hex << addr << " Data: " << data << std::dec << std::endl;
     // }
 
-    
+
     sum_task sum_task_0 = {4, 0, 0, 0, {0}};   // Create a continuation task of sum_task
     auto sum_task_bo = xrt::bo(device, sizeof(sum_task_0), 0); // Move it to a buffer object to move to the FPGA
     auto sum_task_map = sum_task_bo.map<sum_task*>();
     std::copy(&sum_task_0, &sum_task_0 + 1, sum_task_map);
     sum_task_bo.sync(XCL_BO_SYNC_BO_TO_DEVICE);
-    
+
     uint64_t sum_task_addr = sum_task_bo.address();     // Get the physical address of the sum_task_bo
     std::cout << "sum_task address: " << std::hex << sum_task_addr << std::dec << std::endl;
 
@@ -313,7 +313,7 @@ int main(int argc, char** argv) {
     // Initialize the scheduler server 0 for sum
     auto sum_scheduler_0_bo = xrt::bo(device, buf_size * sizeof(sum_task), 0);
     auto sum_scheduler_0_map = sum_scheduler_0_bo.map<sum_task*>();
-    initializeScheduler<sum_task>({}, 
+    initializeScheduler<sum_task>({},
                                   buf_size,
                                   REG_SUM_SCHEDULER_0_RADDR,
                                   REG_SUM_SCHEDULER_0_MAXLEN,
@@ -325,11 +325,11 @@ int main(int argc, char** argv) {
                                   1,
                                   &sum_scheduler_0_bo,
                                   &sum_scheduler_0_map);
-    
+
     // Initialize the scheduler server 1 for sum with empty base task data
     auto sum_scheduler_1_bo = xrt::bo(device, buf_size * sizeof(sum_task), 0);
     auto sum_scheduler_1_map = sum_scheduler_1_bo.map<sum_task*>();
-    initializeScheduler<sum_task>({}, 
+    initializeScheduler<sum_task>({},
                                   buf_size,
                                   REG_SUM_SCHEDULER_1_RADDR,
                                   REG_SUM_SCHEDULER_1_MAXLEN,
@@ -364,7 +364,7 @@ int main(int argc, char** argv) {
 
 
 
-    
+
 
     // read the addresses between 0x10 and 0x100 with 32 bit steps and log them
     // for(uint64_t addr = 0x10; addr <= 0x100; addr += 0x8){
@@ -374,8 +374,8 @@ int main(int argc, char** argv) {
 
     // log start time
     auto start = std::chrono::high_resolution_clock::now();
-    
-    
+
+
     // Write 0 to all rPause registers to start the servers
     writeRegister64(ip1, REG_SUM_SCHEDULER_0_RPAUSE, 0x0);
     writeRegister64(ip1, REG_SUM_SCHEDULER_1_RPAUSE, 0x0);
@@ -396,7 +396,7 @@ int main(int argc, char** argv) {
 
 
     // In a loop readback the sum_task structure from the FPGA and log the _counter, f1, f2 values until f1 is not zero and print f1
-    
+
     sum_task result = {0, 0, 0, 0, 0, 0};
 
     sum_task_bo.sync(XCL_BO_SYNC_BO_FROM_DEVICE);
@@ -417,7 +417,7 @@ int main(int argc, char** argv) {
         uint64_t currLen = readRegister64(ip1, REG_FIB_SCHEDULER_0_CURRLEN);
         std::cout << "Fib scheduler current length: " << currLen << std::endl;
 
-        sleep(1);
+        sleep(0.1);
     } while(result.f1 == 0);
 
     // log end time
@@ -439,7 +439,7 @@ int main(int argc, char** argv) {
     // // Map the contents of the buffer object into host memory
     // auto bo0_map = ip1_boA.map<int*>();
     // auto bo1_map = ip1_boB.map<int*>();
- 
+
     // std::fill(bo0_map, bo0_map + DATA_SIZE, 0);
     // std::fill(bo1_map, bo1_map + DATA_SIZE, 0);
 

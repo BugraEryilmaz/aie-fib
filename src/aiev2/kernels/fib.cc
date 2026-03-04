@@ -1,0 +1,65 @@
+/* A simple kernel
+ */
+#include "fib.h"
+#include <adf.h>
+
+void fib(input_window_uint64 *taskIn, output_window_uint64 *taskOut_argDataOut,
+         input_window_uint64 *closureIn,
+         output_window_uint64 *argOut_SpawnNext) {
+  uint32_t f1;
+  uint32_t f2;
+  fib_task *args = (fib_task *)taskIn->ptr;
+  window_incr(taskIn, sizeof(fib_task) / sizeof(uint64_t));
+  if ((args->n < 2)) {
+    stream_union_2<arg_out, fib_cont0_spawn_next> *cont =
+        (stream_union_2<arg_out, fib_cont0_spawn_next> *)argOut_SpawnNext->ptr;
+    cont->tag = 0;
+    cont->t1.data = args->_cont;
+    window_incr(argOut_SpawnNext, sizeof(*cont) / sizeof(uint64_t));
+    stream_union_2<fib_task, uint32_t_arg_out> *result =
+        (stream_union_2<fib_task, uint32_t_arg_out> *)taskOut_argDataOut->ptr;
+    result->tag = 1;
+    result->t2.addr = args->_cont;
+    result->t2.data = args->n;
+    result->t2.size = 2;
+    result->t2.allow = 1;
+    window_incr(taskOut_argDataOut, sizeof(*result) / sizeof(uint64_t));
+  } else {
+    uint32_t SN_fib_cont0c_cnt = 2;
+    fib_cont0_task SN_fib_cont0c;
+    SN_fib_cont0c._cont = args->_cont;
+    SN_fib_cont0c._counter = SN_fib_cont0c_cnt;
+    closure_in *SN_fib_cont0c_k = (closure_in *)closureIn->ptr;
+    window_incr(closureIn, sizeof(closure_in) / sizeof(uint64_t));
+
+    // window_acquire(taskOut_argDataOut);
+
+    stream_union_2<fib_task, uint32_t_arg_out> *fib_args0 =
+        (stream_union_2<fib_task, uint32_t_arg_out> *)taskOut_argDataOut->ptr;
+    fib_args0->tag = 0;
+    fib_args0->t1._cont = SN_fib_cont0c_k->data + offsetof(fib_cont0_task, f1);
+    fib_args0->t1.n = (args->n - 1);
+    window_incr(taskOut_argDataOut, sizeof(fib_args0[0]) / sizeof(uint64_t));
+
+    window_release(taskOut_argDataOut);
+    window_acquire(taskOut_argDataOut);
+
+    stream_union_2<fib_task, uint32_t_arg_out> *fib_args1 =
+        (stream_union_2<fib_task, uint32_t_arg_out> *)taskOut_argDataOut->ptr;
+    fib_args1->tag = 0;
+    fib_args1->t1._cont = SN_fib_cont0c_k->data + offsetof(fib_cont0_task, f2);
+    fib_args1->t1.n = (args->n - 2);
+    window_incr(taskOut_argDataOut, sizeof(fib_args1[0]) / sizeof(uint64_t));
+
+    // window_release(taskOut_argDataOut);
+
+    stream_union_2<arg_out, fib_cont0_spawn_next> *SN_fib_cont0 =
+        (stream_union_2<arg_out, fib_cont0_spawn_next> *)argOut_SpawnNext->ptr;
+    SN_fib_cont0->tag = 1;
+    SN_fib_cont0->t2.addr = SN_fib_cont0c_k->data;
+    SN_fib_cont0->t2.data = SN_fib_cont0c;
+    SN_fib_cont0->t2.size = 5;
+    SN_fib_cont0->t2.allow = SN_fib_cont0c_cnt;
+    window_incr(argOut_SpawnNext, sizeof(*SN_fib_cont0) / sizeof(uint64_t));
+  }
+}

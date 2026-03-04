@@ -6,13 +6,13 @@ sysmem1,-,-,1172,"(22, 0)",0,0,-
 
 
 PLIO,IN/OUT,TILE_COLUMN,CHANNEL
-PLIO_fib_taskIn,in,24,4
 PLIO_fib_closureIn,in,24,6
+PLIO_fib_cont0_argOut,out,22,0
+PLIO_fib_taskOut_argDataOut,out,24,4
 PLIO_fib_argOut_SpawnNext,out,24,2
 PLIO_fib_cont0_taskIn,in,22,4
-PLIO_fib_taskOut_argDataOut,out,24,4
-PLIO_fib_cont0_argOut,out,22,0
 PLIO_fib_cont0_argDataOut,out,22,4
+PLIO_fib_taskIn,in,24,4
 
 
 CLUSTER,KERNELS,TILE

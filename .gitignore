@@ -24,6 +24,9 @@ Map_Report/
 sol.db
 cfg/
 output_rtl/
+*.wdb
+*.wcfg
+*.protoinst
 
 !src/host/
 !src/host/**

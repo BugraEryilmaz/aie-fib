@@ -9,7 +9,11 @@ ECHO=@echo
 
 TARGET := hw_emu
 # TARGET := hw
+AIE_PATH := ./src/aie
+HOST_PATH := ./src/host
+# HOST_PATH := ./src/host_specialbo
 PLATFORM := xilinx_vck5000_gen4x8_qdma_2_202220_1
+# PLATFORM := xilinx_vck5000_gen4x8_qdma_base_2
 PLATFORM_NAME := $(basename $(notdir $(PLATFORM)))
 
 AIE_OBJ      := ./libadf.a
@@ -37,10 +41,10 @@ test:
 ###########################################################
 AIE_CXXFLAGS := --target=hw --platform=$(PLATFORM)
 AIE_CXXFLAGS += --include="$(XILINX_VITIS)/aietools/include"
-$(AIE_OBJ): ./src/aie/*
+$(AIE_OBJ): $(AIE_PATH)/*
 	@rm -rf Work libadf.a
 	@mkdir -p Work
-	@$(VPP) -c --mode aie $(AIE_CXXFLAGS) --include="./src/aie" --work_dir=./Work ./src/aie/project.cpp
+	@$(VPP) -c --mode aie $(AIE_CXXFLAGS) --include="$(AIE_PATH)" --work_dir=./Work $(AIE_PATH)/project.cpp
 
 ###########################################################
 # clean
@@ -90,8 +94,8 @@ $(dir $(XSA_OBJ)):
 ###########################################################################
 # xclbin generation
 ###########################################################################
-VPP := v++ 
-VPPFLAGS := --target=$(TARGET) --platform=$(PLATFORM) --save-temps -g --profile.data all:all:all
+VPP := v++
+VPPFLAGS := --target=$(TARGET) --platform=$(PLATFORM) --save-temps -g --profile.data all:all:all --kernel_frequency 300
 
 $(XSA_OBJ): $(AIE_OBJ) $(RTL_XOS) $(dir $(XSA_OBJ))
 	@mkdir -p xclbins
@@ -106,13 +110,21 @@ $(FINAL_XCLBIN): $(XSA_OBJ) $(dir $(FINAL_XCLBIN))
 	v++ -p -t $(TARGET) -f $(PLATFORM) $(XSA_OBJ) $(AIE_OBJ) -o $@ --package.boot_mode=ospi
 
 host:
-	g++ -I./src/host -Wall -O0 -g -std=c++17 src/host/fib_host.cpp -I/opt/xilinx/xrt/include -L/opt/xilinx/xrt/lib -lxrt_coreutil -pthread -o host
+	g++ -I$(HOST_PATH) -Wall -O0 -g -std=c++17 $(HOST_PATH)/fib_host.cpp -I/opt/xilinx/xrt/include -L/opt/xilinx/xrt/lib -lxrt_coreutil -pthread -o host
 
 ###########################################################
 # default target
 ###########################################################
+.PHONY: cp_emulation
+# if the target is hw_emu, copy the emulation data to the sim/behav_waveform/xsim directory for waveform viewing
+cp_emulation:
+	if [ "$(TARGET)" = "hw_emu" ]; then \
+		mkdir -p ./sim/behav_waveform/xsim && \
+		cp -r ./emulation_data/* ./sim/behav_waveform/xsim/; \
+	fi
+
 .PHONY: all
-all:  $(FINAL_XCLBIN) host
+all:  $(FINAL_XCLBIN) host cp_emulation
 
 .PHONY: run
 run: all
